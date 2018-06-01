@@ -3,6 +3,7 @@ using LibraryApp.Entities;
 using LibraryApp.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,10 +35,17 @@ namespace LibraryApp {
             ILoggerFactory loggerFactory, LibraryContext libraryContext) {
             loggerFactory.AddConsole();
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
-            else
-                app.UseExceptionHandler();
+            }
+            else {
+                app.UseExceptionHandler(builder => {
+                    builder.Run(async context => {
+                        context.Response.StatusCode = 500;
+                        await context.Response.WriteAsync("An unexpected fault happened. Try again later.");
+                    });
+                });
+            }
 
             libraryContext.EnsureSeedDataForContext();
 

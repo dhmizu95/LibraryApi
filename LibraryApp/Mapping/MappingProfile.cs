@@ -18,6 +18,9 @@ namespace LibraryApp.Mapping {
                 .ForMember(dest => dest.Age, opt => opt.MapFrom(
                     src => src.DateOfBirth.GetCurrentAge()));
 
+            CreateMap<Book, BookDto>();
+
+
             // dto to source
             CreateMap<AuthorDto, Author>();
         }
