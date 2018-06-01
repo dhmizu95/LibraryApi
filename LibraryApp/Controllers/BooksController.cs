@@ -29,5 +29,22 @@ namespace LibraryApp.Controllers {
 
             return Ok(booksForAuthor);
         }
+
+        [HttpGet("{id}")]
+        public IActionResult GetBookForAuthor(Guid id, Guid authorId)
+        {
+            if (!_libraryRepository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+            
+            var bookForAuthorFromRepo = _libraryRepository.GetBookForAuthor(authorId, id);
+            if (bookForAuthorFromRepo == null)
+                return NotFound();
+
+            var bookForAuthor = _mapper.Map<BookDto>(bookForAuthorFromRepo);
+
+            return Ok(bookForAuthor);
+        }
     }
 }
