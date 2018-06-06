@@ -20,11 +20,15 @@ namespace LibraryApp.Mapping {
 
             CreateMap<Book, BookDto>();
 
+            CreateMap<Book, BookForUpdateDto>();
+
 
             // dto to source
             CreateMap<AuthorForCreationDto, Author>();
 
             CreateMap<BookForCreationDto, Book>();
+
+            CreateMap<BookForUpdateDto, Book>();
         }
     }
 }

@@ -5,6 +5,7 @@ using AutoMapper;
 using LibraryApp.Entities;
 using LibraryApp.Models;
 using LibraryApp.Services;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryApp.Controllers {
@@ -124,6 +125,57 @@ namespace LibraryApp.Controllers {
 
             if (!_libraryRepository.Save()) {
                 throw new Exception($"Updating book {id} for author {authorId} failed on save.");
+            }
+
+            return NoContent();
+        }
+
+        [HttpPatch("{id}")]
+        public IActionResult PartiallyUpdateBookForAuthor(Guid authorId, Guid id,
+            [FromBody] JsonPatchDocument<BookForUpdateDto> patchDoc) {
+
+            if (patchDoc == null) {
+                return BadRequest();
+            }
+
+            if (!_libraryRepository.AuthorExists(authorId)) {
+                return NotFound();
+            }
+
+            var bookForAuthorFromRepo = _libraryRepository.GetBookForAuthor(authorId, id);
+            if (bookForAuthorFromRepo == null) {
+
+                var bookDto = new BookForUpdateDto();
+                patchDoc.ApplyTo(bookDto);
+
+                var bookToAdd = _mapper.Map<Book>(bookDto);
+                bookToAdd.Id = id;
+
+                _libraryRepository.AddBookForAuthor(authorId, bookToAdd);
+
+                if (!_libraryRepository.Save()) {
+                    throw new Exception($"Adding book {id} for author {authorId} failed on save.");
+                }
+
+                var bookToReturn = _mapper.Map<BookDto>(bookToAdd);
+
+                return CreatedAtRoute("GetBookForAuthor",
+                    new { authorId, id = bookToReturn.Id },
+                    bookToReturn); 
+            }
+
+            var bookToPatch = _mapper.Map<BookForUpdateDto>(bookForAuthorFromRepo);
+
+            patchDoc.ApplyTo(bookToPatch);
+
+            //add validation
+
+            _mapper.Map(bookToPatch, bookForAuthorFromRepo);
+
+            _libraryRepository.UpdateBookForAuthor(bookForAuthorFromRepo);
+
+            if (!_libraryRepository.Save()) {
+                throw new Exception($"Patching book {id} for author {authorId} failed on save.");
             }
 
             return NoContent();
