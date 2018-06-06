@@ -63,5 +63,21 @@ namespace LibraryApp.Controllers {
             return NotFound();
         }
 
+        [HttpDelete("{id}")]
+        public IActionResult DeleteAuthor(Guid id) {
+            
+            var authorFromRepo = _libraryRepository.GetAuthor(id);
+            if (authorFromRepo == null) {
+                return NotFound();
+            }
+
+            _libraryRepository.DeleteAuthor(authorFromRepo);
+            if (!_libraryRepository.Save()) {
+                throw new Exception($"Deleting author {id} failed on save.");
+            }
+
+            return NoContent();
+        }
+
     }
 }
