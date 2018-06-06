@@ -87,5 +87,46 @@ namespace LibraryApp.Controllers {
 
             return NoContent();
         }
+
+        [HttpPut("{id}")]
+        public IActionResult UpdateBookForAuthor(Guid authorId, Guid id,
+            [FromBody] BookForCreationDto book) {
+
+            if (book == null) {
+                return BadRequest();
+            }
+
+            if (!_libraryRepository.AuthorExists(authorId)) {
+                return NotFound();
+            }
+
+            var bookForAuthorFromRepo = _libraryRepository.GetBookForAuthor(authorId, id);
+            if (bookForAuthorFromRepo == null) {
+                var bookToAdd = _mapper.Map<Book>(book);
+                bookToAdd.Id = id;
+
+                _libraryRepository.AddBookForAuthor(authorId, bookToAdd);
+
+                if (!_libraryRepository.Save()) {
+                    throw new Exception($"Adding book {id} for author {authorId} failed on save.");
+                }
+
+                var bookToReturn = _mapper.Map<BookDto>(bookToAdd);
+
+                return CreatedAtRoute("GetBookForAuthor",
+                    new {authorId, id = bookToReturn.Id},
+                    bookToReturn);
+            }
+
+            _mapper.Map(book, bookForAuthorFromRepo);
+
+            _libraryRepository.UpdateBookForAuthor(bookForAuthorFromRepo);
+
+            if (!_libraryRepository.Save()) {
+                throw new Exception($"Updating book {id} for author {authorId} failed on save.");
+            }
+
+            return NoContent();
+        }
     }
 }
