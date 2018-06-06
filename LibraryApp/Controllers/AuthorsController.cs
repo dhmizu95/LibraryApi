@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoMapper;
+using LibraryApp.Entities;
 using LibraryApp.Models;
 using LibraryApp.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -19,13 +20,12 @@ namespace LibraryApp.Controllers {
 
         [HttpGet]
         public IActionResult GetAuthors() {
-
             var authorsFromRepo = _libraryRepository.GetAuthors();
             var authors = _mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo);
             return Ok(authors);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetAuthor")]
         public IActionResult GetAuthor(Guid id) {
             var authorFromRepo = _libraryRepository.GetAuthor(id);
             if (authorFromRepo == null)
@@ -33,6 +33,24 @@ namespace LibraryApp.Controllers {
 
             var author = _mapper.Map<AuthorDto>(authorFromRepo);
             return Ok(author);
+        }
+
+        [HttpPost]
+        public IActionResult CreateAuthor([FromBody] AuthorForCreationDto author) {
+            if (author == null)
+                return BadRequest();
+
+            var authorEntity = _mapper.Map<Author>(author);
+
+            _libraryRepository.AddAuthor(authorEntity);
+            if (!_libraryRepository.Save())
+                throw new Exception("Creating an author failed on save.");
+
+            var authorToReturn = _mapper.Map<AuthorDto>(authorEntity);
+
+            return CreatedAtRoute("GetAuthor",
+                new {id = authorToReturn.Id},
+                authorToReturn);
         }
     }
 }
