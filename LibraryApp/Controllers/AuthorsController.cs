@@ -4,6 +4,7 @@ using AutoMapper;
 using LibraryApp.Entities;
 using LibraryApp.Models;
 using LibraryApp.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryApp.Controllers {
@@ -52,5 +53,15 @@ namespace LibraryApp.Controllers {
                 new {id = authorToReturn.Id},
                 authorToReturn);
         }
+
+        [HttpPost("{id}")]
+        public IActionResult BlockAuthorCreation(Guid id) {
+            if (_libraryRepository.AuthorExists(id)) {
+                return new StatusCodeResult(StatusCodes.Status409Conflict);
+            }
+
+            return NotFound();
+        }
+
     }
 }
