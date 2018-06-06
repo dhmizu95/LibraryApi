@@ -22,7 +22,9 @@ namespace LibraryApp.Mapping {
 
 
             // dto to source
-            CreateMap<AuthorDto, Author>();
+            CreateMap<AuthorForCreationDto, Author>();
+
+            CreateMap<BookForCreationDto, Book>();
         }
     }
 }
